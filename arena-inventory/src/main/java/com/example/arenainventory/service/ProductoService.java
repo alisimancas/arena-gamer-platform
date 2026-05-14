@@ -20,7 +20,6 @@ public class ProductoService {
         return productoRepository.findAll();
     }
 
-    // Lógica de negocio: filtrar por categoría
     public List<Producto> listarPorCategoria(String categoria) {
         try {
             Producto.Categoria cat = Producto.Categoria.valueOf(categoria.toUpperCase());
@@ -42,16 +41,14 @@ public class ProductoService {
     }
 
     public Producto actualizar(Long id, Producto productoActualizado) {
-        Producto existente = obtenerPorId(id); // lanza 404 si no existe
+        Producto existente = obtenerPorId(id);
         productoActualizado.setId(existente.getId());
         return productoRepository.save(productoActualizado);
     }
 
-    // ── Lógica de negocio principal ──────────────────────────────────────────
     public Producto actualizarStock(Long id, Integer cantidad) {
         if (cantidad == null) {
-            throw new IllegalArgumentException(
-                    "La cantidad no puede ser nula");
+            throw new IllegalArgumentException("La cantidad no puede ser nula");
         }
         Producto producto = obtenerPorId(id);
         int nuevoStock = producto.getStock() + cantidad;
@@ -67,9 +64,10 @@ public class ProductoService {
     }
 
     public void eliminar(Long id) {
-        if (!productoRepository.deleteById(id)) {
+        if (!productoRepository.existsById(id)) {
             throw new ProductoNotFoundException(
                     "Producto con ID " + id + " no encontrado");
         }
+        productoRepository.deleteById(id);
     }
 }

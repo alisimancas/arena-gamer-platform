@@ -27,7 +27,7 @@ public class BilleteraService {
     }
 
     public Billetera crear(Billetera billetera) {
-        if (billeteraRepository.existsByUsuarioId(billetera.getIdUsuario())) {
+        if (billeteraRepository.existsByIdUsuario(billetera.getIdUsuario())) {
             throw new IllegalArgumentException(
                     "Ya existe una billetera para el usuario con ID "
                             + billetera.getIdUsuario());
@@ -42,7 +42,8 @@ public class BilleteraService {
         Billetera existente = obtenerPorId(id);
 
         if (!existente.getIdUsuario().equals(billeteraActualizada.getIdUsuario())
-                && billeteraRepository.existsByUsuarioId(billeteraActualizada.getIdUsuario())) {
+                && billeteraRepository.existsByIdUsuarioAndIdNot(
+                billeteraActualizada.getIdUsuario(), id)) {
             throw new IllegalArgumentException(
                     "Ya existe una billetera para el usuario con ID "
                             + billeteraActualizada.getIdUsuario());
@@ -60,7 +61,6 @@ public class BilleteraService {
         Billetera billetera = obtenerPorId(id);
         billetera.setSaldo(billetera.getSaldo() + monto);
 
-        // Por cada $1.000 recargados se suma 1 punto de fidelización
         int puntosGanados = (int) (monto / 1000);
         billetera.setPuntosFidelizacion(
                 billetera.getPuntosFidelizacion() + puntosGanados);
@@ -69,9 +69,10 @@ public class BilleteraService {
     }
 
     public void eliminar(Long id) {
-        if (!billeteraRepository.deleteById(id)) {
+        if (!billeteraRepository.existsById(id)) {
             throw new BilleteraNotFoundException(
                     "Billetera con ID " + id + " no encontrada");
         }
+        billeteraRepository.deleteById(id);
     }
 }

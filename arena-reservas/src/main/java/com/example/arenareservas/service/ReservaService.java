@@ -6,7 +6,6 @@ import com.example.arenareservas.repository.ReservaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ReservaService {
@@ -21,11 +20,8 @@ public class ReservaService {
         return reservaRepository.findAll();
     }
 
-    // Lógica de negocio: filtrar reservas por estado
     public List<Reserva> listarPorEstado(String estado) {
-        return reservaRepository.findAll().stream()
-                .filter(r -> r.getEstado().equalsIgnoreCase(estado))
-                .collect(Collectors.toList());
+        return reservaRepository.findByEstadoIgnoreCase(estado);
     }
 
     public Reserva obtenerPorId(Long id) {
@@ -35,22 +31,21 @@ public class ReservaService {
     }
 
     public Reserva crear(Reserva reserva) {
-        validarConflictoHorario(reserva.getEstacionId(),
-                reserva.getFecha().toString(),
+        validarConflictoHorario(
+                reserva.getEstacionId(),
+                reserva.getFecha(),
                 reserva.getBloqueHorario(),
-                -1L); // -1L indica que no hay ID a excluir (es nueva)
+                -1L);
         reserva.setEstado(reserva.getEstado().toUpperCase());
         return reservaRepository.save(reserva);
     }
 
     public Reserva actualizar(Long id, Reserva reservaActualizada) {
-        // Verifica que la reserva exista antes de actualizar
         Reserva existente = obtenerPorId(id);
 
-        // Valida conflicto excluyendo la reserva actual (para permitir actualizar su propio horario)
         validarConflictoHorario(
                 reservaActualizada.getEstacionId(),
-                reservaActualizada.getFecha().toString(),
+                reservaActualizada.getFecha(),
                 reservaActualizada.getBloqueHorario(),
                 id);
 
@@ -60,15 +55,19 @@ public class ReservaService {
     }
 
     public void eliminar(Long id) {
-        if (!reservaRepository.deleteById(id)) {
+        if (!reservaRepository.existsById(id)) {
             throw new ReservaNotFoundException(
                     "Reserva con ID " + id + " no encontrada");
         }
+        reservaRepository.deleteById(id);
     }
 
-    private void validarConflictoHorario(Long estacionId, String fecha,
+    private void validarConflictoHorario(Long estacionId, java.time.LocalDate fecha,
                                          String bloqueHorario, Long idExcluido) {
-        if (reservaRepository.existeConflicto(estacionId, fecha, bloqueHorario, idExcluido)) {
+        boolean conflicto = reservaRepository
+                .existsByEstacionIdAndFechaAndBloqueHorarioAndEstadoNotAndIdNot(
+                        estacionId, fecha, bloqueHorario, "CANCELADA", idExcluido);
+        if (conflicto) {
             throw new IllegalArgumentException(
                     "Ya existe una reserva para la estación " + estacionId +
                             " en la fecha " + fecha +
