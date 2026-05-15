@@ -26,7 +26,7 @@ public class Billetera {
 
     @NotNull(message = "El saldo es obligatorio")
     @PositiveOrZero(message = "El saldo no puede ser negativo")
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 10, scale = 2) // <-- Precisión agregada aquí
     private Double saldo;
 
     @NotNull(message = "Los puntos de fidelización son obligatorios")

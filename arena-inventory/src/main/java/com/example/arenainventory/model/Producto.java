@@ -20,7 +20,7 @@ public class Producto {
     private Long id;
 
     @NotBlank(message = "El nombre del producto es obligatorio")
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true) // Agregado unique=true por lo que hablamos en el Repository
     private String nombre;
 
     @NotNull(message = "La categoría es obligatoria")
@@ -35,7 +35,7 @@ public class Producto {
 
     @NotNull(message = "El precio de alquiler es obligatorio")
     @Min(value = 0, message = "El precio de alquiler no puede ser negativo")
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 10, scale = 2) // Mejorado para precios
     private Double precioAlquiler;
 
     public enum Categoria {

@@ -54,12 +54,25 @@ public class BilleteraController {
     @PatchMapping("/{id}/recargas")
     public ResponseEntity<Billetera> recargarSaldo(
             @PathVariable Long id,
-            @RequestBody Map<String,
-                    @Positive(message = "El monto debe ser positivo") Double> body) {
+            @RequestBody Map<String, Double> body) {
 
         Double monto = body.get("monto");
+        if (monto == null || monto <= 0) {
+            throw new IllegalArgumentException("El monto a recargar debe ser positivo y obligatorio");
+        }
+
+        // Le pasamos el monto al service
         return ResponseEntity.ok(billeteraService.recargarSaldo(id, monto));
     }
+
+    // --- REQUERIMIENTO LECCIÓN 13: ENDPOINT DE AUDITORÍA ---
+    // GET /api/v1/billeteras/{id}/historial
+    @GetMapping("/{id}/historial")
+    public ResponseEntity<?> obtenerHistorial(@PathVariable Long id) {
+        // Este método devolverá la lista de movimientos/cambios de la billetera
+        return ResponseEntity.ok(billeteraService.obtenerHistorial(id));
+    }
+    // -------------------------------------------------------
 
     // DELETE /api/v1/billeteras/{id}
     @DeleteMapping("/{id}")

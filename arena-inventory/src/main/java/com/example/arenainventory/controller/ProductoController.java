@@ -20,8 +20,6 @@ public class ProductoController {
         this.productoService = productoService;
     }
 
-    // GET /api/v1/productos
-    // GET /api/v1/productos?categoria=CONSOLA
     @GetMapping
     public ResponseEntity<List<Producto>> listar(
             @RequestParam(required = false) String categoria) {
@@ -33,20 +31,19 @@ public class ProductoController {
         return ResponseEntity.ok(resultado);
     }
 
-    // GET /api/v1/productos/{id}
     @GetMapping("/{id}")
     public ResponseEntity<Producto> obtenerPorId(@PathVariable Long id) {
+        // El service lanzará una excepción personalizada si no existe,
+        // la cual será capturada por el GlobalExceptionHandler
         return ResponseEntity.ok(productoService.obtenerPorId(id));
     }
 
-    // POST /api/v1/productos
     @PostMapping
     public ResponseEntity<Producto> crear(@Valid @RequestBody Producto producto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(productoService.crear(producto));
     }
 
-    // PUT /api/v1/productos/{id}  →  Actualización completa
     @PutMapping("/{id}")
     public ResponseEntity<Producto> actualizar(
             @PathVariable Long id,
@@ -54,17 +51,20 @@ public class ProductoController {
         return ResponseEntity.ok(productoService.actualizar(id, producto));
     }
 
-    // PATCH /api/v1/productos/{id}/stock  →  Sumar o restar unidades
     @PatchMapping("/{id}/stock")
     public ResponseEntity<Producto> actualizarStock(
             @PathVariable Long id,
             @RequestBody Map<String, Integer> body) {
 
+        // Validación de seguridad para el body
+        if (body == null || !body.containsKey("cantidad")) {
+            return ResponseEntity.badRequest().build();
+        }
+
         Integer cantidad = body.get("cantidad");
         return ResponseEntity.ok(productoService.actualizarStock(id, cantidad));
     }
 
-    // DELETE /api/v1/productos/{id}
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         productoService.eliminar(id);
